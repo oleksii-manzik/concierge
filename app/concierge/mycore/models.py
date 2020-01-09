@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 
+
 class Tenant(models.Model):
     """
     Room's owner/tenant
@@ -50,5 +51,39 @@ class Tenant(models.Model):
             models.Index(fields=['first_name', 'last_name']),
         ]
 
-#TODO model Room
-#TODO model Journal
+
+class Room(models.Model):
+    number = models.IntegerField()
+    max_tenants = models.IntegerField()
+    current_tenant = models.OneToOneField(
+        Tenant,
+        on_delete=models.SET_DEFAULT,
+        default='free'
+    )
+
+    def __str__(self):
+        return f'Room {self.number}'
+
+    class Meta:
+        ordering = ['number']
+
+
+class Journal(models.Model):
+    created = models.DateTimeField()
+    room = models.ForeignKey(
+        Room,
+        on_delete=models.SET_DEFAULT,
+        default='not existing room'
+    ),
+    guests_count = models.IntegerField(
+        blank=True,
+        null=True
+    )
+    is_kept = models.BooleanField()
+
+    def __str__(self):
+        return f'Entry: {self.created} room {self.room} became ' \
+               f'{"vacated" if self.is_kept else "occupied"}'
+
+    class Meta:
+        ordering = ['created']
